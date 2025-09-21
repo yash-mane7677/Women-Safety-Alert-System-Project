@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Women's Safety Alert System Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Brilliant Blues -->
+    <!-- Application Structure Plan: The SPA is a dashboard with three main sections: System Overview, Technology Breakdown, and a detailed Process Flow. The Overview section presents key statistics in a minimalist design. The Technology Breakdown section uses interactive charts to show the composition of the frontend and backend. The Process Flow section is a series of interactive cards that animate to reveal details when clicked, allowing users to drill down into the system's logic. This non-linear, task-oriented structure allows users to quickly find the information they need without scrolling through a long, linear document. -->
+    <!-- Visualization & Content Choices: 
+        - Key Stats: Goal: Inform. Method: Large, bold text with icons. Justification: Quickly conveys the most critical information (e.g., number of components) for immediate understanding. Method: HTML/CSS. (CONFIRM: NO SVG).
+        - Technology Stack: Goal: Compare/Organize. Method: Doughnut Chart. Justification: Visually represents the proportional split between frontend and backend components in a single view. Method: Chart.js. (CONFIRM: NO SVG).
+        - Alert Channels: Goal: Compare/Inform. Method: Bar Chart. Justification: A simple bar chart effectively illustrates the equal reliability of both email and Telegram alert channels. Method: Chart.js. (CONFIRM: NO SVG).
+        - Process Flow: Goal: Organize. Method: Interactive, collapsible cards. Justification: This interactive element allows a user to explore the process flow at their own pace, revealing complex details only when desired, which is far more user-friendly than a static diagram. Method: HTML/CSS/JS. (CONFIRM: NO SVG/Mermaid).
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .card { background-color: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+        .chart-container { position: relative; width: 100%; max-width: 400px; margin-left: auto; margin-right: auto; height: 350px; }
+        @media (max-width: 768px) { .chart-container { height: 250px; } }
+        .flow-step { transition: background-color 0.3s ease, border-color 0.3s ease; }
+        .flow-step.active { background-color: #e0f2fe; border-color: #3b82f6; }
+    </style>
+</head>
+<body class="bg-blue-50 text-gray-800">
+
+    <main class="container mx-auto px-4 py-12">
+        <header class="text-center mb-12">
+            <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight" style="color: #003366;">Women's Safety Alert System</h1>
+            <p class="mt-4 text-xl text-gray-600 max-w-2xl mx-auto">An interactive dashboard to explore the architecture, technology, and functionality of a modern emergency alert application.</p>
+        </header>
+
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div class="card p-6 text-center">
+                <p class="text-sm font-semibold text-gray-500">Components</p>
+                <p class="mt-2 text-5xl font-extrabold" style="color: #003f5c;">8</p>
+            </div>
+            <div class="card p-6 text-center">
+                <p class="text-sm font-semibold text-gray-500">Alert Channels</p>
+                <p class="mt-2 text-5xl font-extrabold" style="color: #ffa600;">2</p>
+            </div>
+            <div class="card p-6 text-center">
+                <p class="text-sm font-semibold text-gray-500">Primary Languages</p>
+                <p class="mt-2 text-5xl font-extrabold" style="color: #bc5090;">2</p>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+            <div class="card p-8">
+                <h3 class="text-2xl font-bold mb-4" style="color: #003366;">Technology Breakdown</h3>
+                <p class="text-gray-600 mb-6">This system is a full-stack application. The frontend is built for immediate user interaction, while the backend handles secure and reliable alert dispatch.</p>
+                <div class="chart-container">
+                    <canvas id="techStackChart"></canvas>
+                </div>
+            </div>
+            <div class="card p-8">
+                <h3 class="text-2xl font-bold mb-4" style="color: #003366;">Multi-Channel Alerts</h3>
+                <p class="text-gray-600 mb-6">The system sends alerts through two primary channels to ensure redundancy and reliable delivery to emergency contacts.</p>
+                <div class="chart-container">
+                    <canvas id="alertChannelsChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="process-flow" class="mb-12">
+            <div class="text-center mb-8">
+                <h3 class="text-2xl font-bold" style="color: #003366;">System Process Flow</h3>
+                <p class="text-gray-600 max-w-3xl mx-auto mt-2">Click on each step below to learn more about how the system works, from a user action to a sent alert.</p>
+            </div>
+            <div class="space-y-4">
+                <div id="step-1" class="flow-step card p-6 cursor-pointer border-2 border-transparent">
+                    <h4 class="font-bold text-lg" style="color: #003f5c;">Step 1: User Action & Confirmation</h4>
+                    <div class="text-gray-600 mt-2 hidden" data-content>
+                        <p>The process begins when the user presses the SOS button on the web interface. A confirmation modal is triggered to prevent accidental alerts, ensuring the user's intent is confirmed before the system proceeds.</p>
+                    </div>
+                </div>
+                <div id="step-2" class="flow-step card p-6 cursor-pointer border-2 border-transparent">
+                    <h4 class="font-bold text-lg" style="color: #003f5c;">Step 2: Geolocation & Data Capture</h4>
+                    <div class="text-gray-600 mt-2 hidden" data-content>
+                        <p>Once confirmed, the frontend's JavaScript logic activates. It utilizes the browser's built-in Geolocation API to request and capture the device's precise latitude and longitude. This location data is critical for the next steps.</p>
+                    </div>
+                </div>
+                <div id="step-3" class="flow-step card p-6 cursor-pointer border-2 border-transparent">
+                    <h4 class="font-bold text-lg" style="color: #003f5c;">Step 3: API Call to Backend</h4>
+                    <div class="text-gray-600 mt-2 hidden" data-content>
+                        <p>With the location coordinates secured, the frontend sends a secure `POST` request to the backend server's API endpoint. The request body contains the location data in a structured JSON format, ready for the server to process.</p>
+                    </div>
+                </div>
+                <div id="step-4" class="flow-step card p-6 cursor-pointer border-2 border-transparent">
+                    <h4 class="font-bold text-lg" style="color: #003f5c;">Step 4: Multi-Channel Alert Dispatch</h4>
+                    <div class="text-gray-600 mt-2 hidden" data-content>
+                        <p>The Python Flask server receives the API call. It instantly initiates the multi-channel alert protocol, using different libraries (e.g., `smtplib`, `requests`) to dispatch a predefined alert message to all configured emergency contacts via email and Telegram.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="frontend-features" class="mb-12">
+            <div class="text-center mb-8">
+                <h3 class="text-2xl font-bold" style="color: #003366;">Frontend Features</h3>
+                <p class="text-gray-600 max-w-3xl mx-auto mt-2">The user-facing application is built with core features to ensure safety and usability.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="card p-6 text-center">
+                    <p class="text-4xl">🚨</p>
+                    <h4 class="font-bold text-lg mt-2" style="color: #003f5c;">SOS Button</h4>
+                    <p class="text-gray-600 text-sm mt-1">The primary call-to-action to trigger an alert.</p>
+                </div>
+                <div class="card p-6 text-center">
+                    <p class="text-4xl">📍</p>
+                    <h4 class="font-bold text-lg mt-2" style="color: #003f5c;">Location Tracking</h4>
+                    <p class="text-gray-600 text-sm mt-1">Uses Geolocation API to get and share the user's coordinates.</p>
+                </div>
+                <div class="card p-6 text-center">
+                    <p class="text-4xl">🔋</p>
+                    <h4 class="font-bold text-lg mt-2" style="color: #003f5c;">Battery Status</h4>
+                    <p class="text-gray-600 text-sm mt-1">Monitors the device's battery level in real time.</p>
+                </div>
+                <div class="card p-6 text-center">
+                    <p class="text-4xl">📢</p>
+                    <h4 class="font-bold text-lg mt-2" style="color: #003f5c;">Siren & Sound</h4>
+                    <p class="text-gray-600 text-sm mt-1">Generates an audible siren to draw attention when needed.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="backend-libraries" class="mb-12">
+            <div class="text-center mb-8">
+                <h3 class="text-2xl font-bold" style="color: #003366;">Backend Libraries</h3>
+                <p class="text-gray-600 max-w-3xl mx-auto mt-2">The backend is built on a simple yet powerful stack of Python libraries.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="card p-6 text-center">
+                    <p class="text-4xl">🐍</p>
+                    <h4 class="font-bold text-lg mt-2" style="color: #003f5c;">Flask</h4>
+                    <p class="text-gray-600 text-sm mt-1">The web framework that hosts the API endpoint.</p>
+                </div>
+                <div class="card p-6 text-center">
+                    <p class="text-4xl">🔌</p>
+                    <h4 class="font-bold text-lg mt-2" style="color: #003f5c;">Flask-CORS</h4>
+                    <p class="text-gray-600 text-sm mt-1">Handles Cross-Origin Resource Sharing for API calls.</p>
+                </div>
+                <div class="card p-6 text-center">
+                    <p class="text-4xl">📧</p>
+                    <h4 class="font-bold text-lg mt-2" style="color: #003f5c;">smtplib</h4>
+                    <p class="text-gray-600 text-sm mt-1">The standard Python library for sending emails.</p>
+                </div>
+                <div class="card p-6 text-center">
+                    <p class="text-4xl">📞</p>
+                    <h4 class="font-bold text-lg mt-2" style="color: #003f5c;">Requests</h4>
+                    <p class="text-gray-600 text-sm mt-1">Used to make API calls to the Telegram bot.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="text-center text-sm py-6 text-gray-500">
+        <p>Dashboard created to visualize the "Women's Safety Alert System" project documentation.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const commonChartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                }
+            };
+            
+            const techStackCtx = document.getElementById('techStackChart').getContext('2d');
+            new Chart(techStackCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Backend Logic', 'Frontend UI'],
+                    datasets: [{
+                        label: 'Component Distribution',
+                        data: [4, 4],
+                        backgroundColor: ['#003f5c', '#bc5090'],
+                        borderColor: '#fff',
+                        borderWidth: 3
+                    }]
+                },
+                options: commonChartOptions
+            });
+
+            const alertChannelsCtx = document.getElementById('alertChannelsChart').getContext('2d');
+            new Chart(alertChannelsCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Email', 'Telegram'],
+                    datasets: [{
+                        label: 'Alert Channels',
+                        data: [1, 1],
+                        backgroundColor: ['#58508d', '#ff6361'],
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            display: false,
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            document.querySelectorAll('.flow-step').forEach(step => {
+                step.addEventListener('click', (e) => {
+                    const target = e.currentTarget;
+                    const content = target.querySelector('[data-content]');
+
+                    if (target.classList.contains('active')) {
+                        target.classList.remove('active');
+                        content.classList.add('hidden');
+                    } else {
+                        document.querySelectorAll('.flow-step').forEach(s => {
+                            s.classList.remove('active');
+                            s.querySelector('[data-content]').classList.add('hidden');
+                        });
+                        target.classList.add('active');
+                        content.classList.remove('hidden');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Women's Safety Alert System Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Brilliant Blues -->
+    <!-- Application Structure Plan: The SPA is a dashboard with three main sections: System Overview, Technology Breakdown, and a detailed Process Flow. The Overview section presents key statistics in a minimalist design. The Technology Breakdown section uses interactive charts to show the composition of the frontend and backend. The Process Flow section is a series of interactive cards that animate to reveal details when clicked, allowing users to drill down into the system's logic. This non-linear, task-oriented structure allows users to quickly find the information they need without scrolling through a long, linear document. -->
+    <!-- Visualization & Content Choices: 
+        - Key Stats: Goal: Inform. Method: Large, bold text with icons. Justification: Quickly conveys the most critical information (e.g., number of components) for immediate understanding. Method: HTML/CSS. (CONFIRM: NO SVG).
+        - Technology Stack: Goal: Compare/Organize. Method: Doughnut Chart. Justification: Visually represents the proportional split between frontend and backend components in a single view. Method: Chart.js. (CONFIRM: NO SVG).
+        - Alert Channels: Goal: Compare/Inform. Method: Bar Chart. Justification: A simple bar chart effectively illustrates the equal reliability of both email and Telegram alert channels. Method: Chart.js. (CONFIRM: NO SVG).
+        - Process Flow: Goal: Organize. Method: Interactive, collapsible cards. Justification: This interactive element allows a user to explore the process flow at their own pace, revealing complex details only when desired, which is far more user-friendly than a static diagram. Method: HTML/CSS/JS. (CONFIRM: NO SVG/Mermaid).
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .card { background-color: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+        .chart-container { position: relative; width: 100%; max-width: 400px; margin-left: auto; margin-right: auto; height: 350px; }
+        @media (max-width: 768px) { .chart-container { height: 250px; } }
+        .flow-step { transition: background-color 0.3s ease, border-color 0.3s ease; }
+        .flow-step.active { background-color: #e0f2fe; border-color: #3b82f6; }
+    </style>
+</head>
+<body class="bg-blue-50 text-gray-800">
+
+    <main class="container mx-auto px-4 py-12">
+        <header class="text-center mb-12">
+            <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight" style="color: #003366;">Women's Safety Alert System</h1>
+            <p class="mt-4 text-xl text-gray-600 max-w-2xl mx-auto">An interactive dashboard to explore the architecture, technology, and functionality of a modern emergency alert application.</p>
+        </header>
+
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div class="card p-6 text-center">
+                <p class="text-sm font-semibold text-gray-500">Components</p>
+                <p class="mt-2 text-5xl font-extrabold" style="color: #003f5c;">8</p>
+            </div>
+            <div class="card p-6 text-center">
+                <p class="text-sm font-semibold text-gray-500">Alert Channels</p>
+                <p class="mt-2 text-5xl font-extrabold" style="color: #ffa600;">2</p>
+            </div>
+            <div class="card p-6 text-center">
+                <p class="text-sm font-semibold text-gray-500">Primary Languages</p>
+                <p class="mt-2 text-5xl font-extrabold" style="color: #bc5090;">2</p>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+            <div class="card p-8">
+                <h3 class="text-2xl font-bold mb-4" style="color: #003366;">Technology Breakdown</h3>
+                <p class="text-gray-600 mb-6">This system is a full-stack application. The frontend is built for immediate user interaction, while the backend handles secure and reliable alert dispatch.</p>
+                <div class="chart-container">
+                    <canvas id="techStackChart"></canvas>
+                </div>
+            </div>
+            <div class="card p-8">
+                <h3 class="text-2xl font-bold mb-4" style="color: #003366;">Multi-Channel Alerts</h3>
+                <p class="text-gray-600 mb-6">The system sends alerts through two primary channels to ensure redundancy and reliable delivery to emergency contacts.</p>
+                <div class="chart-container">
+                    <canvas id="alertChannelsChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="process-flow" class="mb-12">
+            <div class="text-center mb-8">
+                <h3 class="text-2xl font-bold" style="color: #003366;">System Process Flow</h3>
+                <p class="text-gray-600 max-w-3xl mx-auto mt-2">Click on each step below to learn more about how the system works, from a user action to a sent alert.</p>
+            </div>
+            <div class="space-y-4">
+                <div id="step-1" class="flow-step card p-6 cursor-pointer border-2 border-transparent">
+                    <h4 class="font-bold text-lg" style="color: #003f5c;">Step 1: User Action & Confirmation</h4>
+                    <div class="text-gray-600 mt-2 hidden" data-content>
+                        <p>The process begins when the user presses the SOS button on the web interface. A confirmation modal is triggered to prevent accidental alerts, ensuring the user's intent is confirmed before the system proceeds.</p>
+                    </div>
+                </div>
+                <div id="step-2" class="flow-step card p-6 cursor-pointer border-2 border-transparent">
+                    <h4 class="font-bold text-lg" style="color: #003f5c;">Step 2: Geolocation & Data Capture</h4>
+                    <div class="text-gray-600 mt-2 hidden" data-content>
+                        <p>Once confirmed, the frontend's JavaScript logic activates. It utilizes the browser's built-in Geolocation API to request and capture the device's precise latitude and longitude. This location data is critical for the next steps.</p>
+                    </div>
+                </div>
+                <div id="step-3" class="flow-step card p-6 cursor-pointer border-2 border-transparent">
+                    <h4 class="font-bold text-lg" style="color: #003f5c;">Step 3: API Call to Backend</h4>
+                    <div class="text-gray-600 mt-2 hidden" data-content>
+                        <p>With the location coordinates secured, the frontend sends a secure `POST` request to the backend server's API endpoint. The request body contains the location data in a structured JSON format, ready for the server to process.</p>
+                    </div>
+                </div>
+                <div id="step-4" class="flow-step card p-6 cursor-pointer border-2 border-transparent">
+                    <h4 class="font-bold text-lg" style="color: #003f5c;">Step 4: Multi-Channel Alert Dispatch</h4>
+                    <div class="text-gray-600 mt-2 hidden" data-content>
+                        <p>The Python Flask server receives the API call. It instantly initiates the multi-channel alert protocol, using different libraries (e.g., `smtplib`, `requests`) to dispatch a predefined alert message to all configured emergency contacts via email and Telegram.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="frontend-features" class="mb-12">
+            <div class="text-center mb-8">
+                <h3 class="text-2xl font-bold" style="color: #003366;">Frontend Features</h3>
+                <p class="text-gray-600 max-w-3xl mx-auto mt-2">The user-facing application is built with core features to ensure safety and usability.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="card p-6 text-center">
+                    <p class="text-4xl">🚨</p>
+                    <h4 class="font-bold text-lg mt-2" style="color: #003f5c;">SOS Button</h4>
+                    <p class="text-gray-600 text-sm mt-1">The primary call-to-action to trigger an alert.</p>
+                </div>
+                <div class="card p-6 text-center">
+                    <p class="text-4xl">📍</p>
+                    <h4 class="font-bold text-lg mt-2" style="color: #003f5c;">Location Tracking</h4>
+                    <p class="text-gray-600 text-sm mt-1">Uses Geolocation API to get and share the user's coordinates.</p>
+                </div>
+                <div class="card p-6 text-center">
+                    <p class="text-4xl">🔋</p>
+                    <h4 class="font-bold text-lg mt-2" style="color: #003f5c;">Battery Status</h4>
+                    <p class="text-gray-600 text-sm mt-1">Monitors the device's battery level in real time.</p>
+                </div>
+                <div class="card p-6 text-center">
+                    <p class="text-4xl">📢</p>
+                    <h4 class="font-bold text-lg mt-2" style="color: #003f5c;">Siren & Sound</h4>
+                    <p class="text-gray-600 text-sm mt-1">Generates an audible siren to draw attention when needed.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="backend-libraries" class="mb-12">
+            <div class="text-center mb-8">
+                <h3 class="text-2xl font-bold" style="color: #003366;">Backend Libraries</h3>
+                <p class="text-gray-600 max-w-3xl mx-auto mt-2">The backend is built on a simple yet powerful stack of Python libraries.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="card p-6 text-center">
+                    <p class="text-4xl">🐍</p>
+                    <h4 class="font-bold text-lg mt-2" style="color: #003f5c;">Flask</h4>
+                    <p class="text-gray-600 text-sm mt-1">The web framework that hosts the API endpoint.</p>
+                </div>
+                <div class="card p-6 text-center">
+                    <p class="text-4xl">🔌</p>
+                    <h4 class="font-bold text-lg mt-2" style="color: #003f5c;">Flask-CORS</h4>
+                    <p class="text-gray-600 text-sm mt-1">Handles Cross-Origin Resource Sharing for API calls.</p>
+                </div>
+                <div class="card p-6 text-center">
+                    <p class="text-4xl">📧</p>
+                    <h4 class="font-bold text-lg mt-2" style="color: #003f5c;">smtplib</h4>
+                    <p class="text-gray-600 text-sm mt-1">The standard Python library for sending emails.</p>
+                </div>
+                <div class="card p-6 text-center">
+                    <p class="text-4xl">📞</p>
+                    <h4 class="font-bold text-lg mt-2" style="color: #003f5c;">Requests</h4>
+                    <p class="text-gray-600 text-sm mt-1">Used to make API calls to the Telegram bot.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="text-center text-sm py-6 text-gray-500">
+        <p>Dashboard created to visualize the "Women's Safety Alert System" project documentation.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const commonChartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                }
+            };
+            
+            const techStackCtx = document.getElementById('techStackChart').getContext('2d');
+            new Chart(techStackCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Backend Logic', 'Frontend UI'],
+                    datasets: [{
+                        label: 'Component Distribution',
+                        data: [4, 4],
+                        backgroundColor: ['#003f5c', '#bc5090'],
+                        borderColor: '#fff',
+                        borderWidth: 3
+                    }]
+                },
+                options: commonChartOptions
+            });
+
+            const alertChannelsCtx = document.getElementById('alertChannelsChart').getContext('2d');
+            new Chart(alertChannelsCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Email', 'Telegram'],
+                    datasets: [{
+                        label: 'Alert Channels',
+                        data: [1, 1],
+                        backgroundColor: ['#58508d', '#ff6361'],
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            display: false,
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            document.querySelectorAll('.flow-step').forEach(step => {
+                step.addEventListener('click', (e) => {
+                    const target = e.currentTarget;
+                    const content = target.querySelector('[data-content]');
+
+                    if (target.classList.contains('active')) {
+                        target.classList.remove('active');
+                        content.classList.add('hidden');
+                    } else {
+                        document.querySelectorAll('.flow-step').forEach(s => {
+                            s.classList.remove('active');
+                            s.querySelector('[data-content]').classList.add('hidden');
+                        });
+                        target.classList.add('active');
+                        content.classList.remove('hidden');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

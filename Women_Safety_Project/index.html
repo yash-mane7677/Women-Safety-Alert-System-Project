@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Women Safety Alert System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen py-8">
+
+    <div class="w-full max-w-md mx-auto bg-white rounded-2xl shadow-2xl p-6 md:p-8 text-center">
+        
+        <header class="mb-6">
+            <div id="time-container" class="text-sm text-gray-500 mb-2">
+                <span id="date"></span> | <span id="time"></span>
+            </div>
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Safety Alert System</h1>
+            <p id="status-text" class="text-gray-500 mt-2">Press the button below in case of an emergency.</p>
+        </header>
+
+        <main class="my-10">
+            <button id="sos-button" class="sos-button w-48 h-48 md:w-56 md:h-56 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center">
+                <span id="sos-text" class="text-4xl md:text-5xl font-extrabold">SOS</span>
+            </button>
+        </main>
+
+        <section id="utilities" class="mb-6 space-y-4">
+            <h2 class="text-lg font-bold text-gray-700 border-b pb-2">Safety Utilities</h2>
+            <div class="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xl">🔋</span>
+                    <span id="battery-status" class="text-gray-600 text-sm">Checking battery...</span>
+                </div>
+            </div>
+            <button id="siren-button" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition-colors">
+                Play Siren
+            </button>
+        </section>
+
+        <footer id="info-footer" class="text-left text-sm text-gray-600 space-y-4 hidden">
+             <div>
+                <h3 class="font-semibold text-gray-800">Your Location:</h3>
+                <a id="location-link" href="#" target="_blank" class="text-blue-600 hover:underline break-all">Fetching location...</a>
+            </div>
+            <div>
+                <h3 class="font-semibold text-gray-800">Approximate Address:</h3>
+                <p id="address-text" class="text-gray-500">...</p>
+            </div>
+             <div>
+                <h3 class="font-semibold text-gray-800">Emergency Contacts Notified:</h3>
+                <ul class="list-disc list-inside mt-1 text-gray-500">
+                    <li>Aryan mane (Email,Teligram)</li>
+                    <li>Sarika mane (Email,Teligram)</li>
+                    <li>Local Dispatch (Email,Teligram)</li>
+                </ul>
+            </div>
+            <button id="reset-button" class="w-full mt-4 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg">
+                Reset System
+            </button>
+        </footer>
+
+    </div>
+
+    <div id="confirmation-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg p-8 m-4 max-w-sm text-center shadow-xl">
+            <h2 class="text-xl font-bold mb-4">Confirm Alert</h2>
+            <p class="text-gray-600 mb-6">Are you sure you want to send an emergency alert to all your contacts?</p>
+            <div class="flex justify-center gap-4">
+                <button id="cancel-alert" class="px-6 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold">Cancel</button>
+                <button id="confirm-alert" class="px-6 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const sosButton = document.getElementById('sos-button');
+        const sosText = document.getElementById('sos-text');
+        const statusText = document.getElementById('status-text');
+        const infoFooter = document.getElementById('info-footer');
+        const locationLink = document.getElementById('location-link');
+        const addressText = document.getElementById('address-text');
+        const resetButton = document.getElementById('reset-button');
+        const confirmationModal = document.getElementById('confirmation-modal');
+        const cancelAlertButton = document.getElementById('cancel-alert');
+        const confirmAlertButton = document.getElementById('confirm-alert');
+        const dateEl = document.getElementById('date');
+        const timeEl = document.getElementById('time');
+        const sirenButton = document.getElementById('siren-button');
+        const batteryStatusEl = document.getElementById('battery-status');
+        
+        // --- CORRECTED: Define the API URL for your backend server ---
+        const API_URL = 'http://127.0.0.1:5000/api/trigger-alert';
+
+        let audioCtx, oscillator, gainNode;
+        let isSirenPlaying = false;
+
+        const updateTime = () => {
+            const now = new Date();
+            dateEl.textContent = now.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            timeEl.textContent = now.toLocaleTimeString();
+        };
+
+        const toggleSiren = () => {
+            if (isSirenPlaying) {
+                if(gainNode) gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.5);
+                sirenButton.textContent = 'Play Siren';
+                sirenButton.classList.remove('bg-red-500', 'hover:bg-red-600');
+                sirenButton.classList.add('bg-blue-500', 'hover:bg-blue-600');
+                isSirenPlaying = false;
+            } else {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                oscillator = audioCtx.createOscillator();
+                gainNode = audioCtx.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                oscillator.type = 'sine';
+                gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                
+                oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.5);
+                
+                oscillator.start();
+                
+                sirenButton.textContent = 'Stop Siren';
+                sirenButton.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+                sirenButton.classList.add('bg-red-500', 'hover:bg-red-600');
+                isSirenPlaying = true;
+            }
+        };
+
+        const updateBatteryStatus = (battery) => {
+            const level = Math.floor(battery.level * 100);
+            const charging = battery.charging ? '(Charging)' : '(On Battery)';
+            batteryStatusEl.textContent = `Battery: ${level}% ${charging}`;
+        };
+
+        const setupBatteryListener = () => {
+            if ('getBattery' in navigator) {
+                navigator.getBattery().then(battery => {
+                    updateBatteryStatus(battery);
+                    battery.addEventListener('chargingchange', () => updateBatteryStatus(battery));
+                    battery.addEventListener('levelchange', () => updateBatteryStatus(battery));
+                });
+            } else {
+                batteryStatusEl.textContent = 'Battery status not available.';
+            }
+        };
+
+        const resetUI = () => {
+            statusText.textContent = 'Press the button below in case of an emergency.';
+            statusText.classList.remove('text-green-600', 'font-bold', 'blinking', 'text-yellow-600', 'text-red-600');
+            statusText.classList.add('text-gray-500');
+            sosButton.disabled = false;
+            sosButton.classList.remove('bg-gray-400', 'cursor-not-allowed');
+            sosButton.classList.add('bg-red-600', 'hover:bg-red-700');
+            sosText.textContent = 'SOS';
+            infoFooter.classList.add('hidden');
+            if (isSirenPlaying) toggleSiren();
+        };
+        
+        // --- UPDATED: This function now calls the backend API ---
+        const triggerAlert = () => {
+            confirmationModal.classList.add('hidden');
+            sosButton.disabled = true;
+            sosButton.classList.remove('bg-red-600', 'hover:bg-red-700');
+            sosButton.classList.add('bg-gray-400', 'cursor-not-allowed');
+            sosText.textContent = '...';
+
+            statusText.textContent = 'Getting your location...';
+            statusText.classList.remove('text-gray-500');
+            statusText.classList.add('text-yellow-600', 'font-bold', 'blinking');
+
+            navigator.geolocation.getCurrentPosition(position => {
+                const { latitude, longitude } = position.coords;
+                
+                const mapsLink = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+                locationLink.href = mapsLink;
+                locationLink.textContent = `Lat: ${latitude.toFixed(5)}, Lon: ${longitude.toFixed(5)}`;
+                
+                addressText.textContent = `(Address will be determined by backend)`;
+
+                statusText.textContent = 'Sending alerts to your emergency contacts...';
+                
+                // --- NEW: Use fetch to send data to the backend ---
+                fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ latitude, longitude }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        statusText.textContent = 'Alerts Sent Successfully!';
+                        statusText.classList.remove('text-yellow-600', 'blinking');
+                        statusText.classList.add('text-green-600');
+                        infoFooter.classList.remove('hidden');
+                    } else {
+                        throw new Error(data.message || 'Unknown error from server.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error sending alert:', error);
+                    statusText.textContent = 'Error: Could not send alerts.';
+                    statusText.classList.remove('blinking', 'text-yellow-600');
+                    statusText.classList.add('text-red-600', 'font-bold');
+                    setTimeout(resetUI, 5000);
+                });
+
+            }, error => {
+                statusText.textContent = 'Could not get location. Alert not sent.';
+                statusText.classList.remove('blinking', 'text-yellow-600');
+                statusText.classList.add('text-red-600', 'font-bold');
+                setTimeout(resetUI, 4000);
+            }, {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            });
+        };
+        
+        setInterval(updateTime, 1000);
+        updateTime();
+        setupBatteryListener();
+        resetUI();
+
+        sosButton.addEventListener('click', () => confirmationModal.classList.remove('hidden'));
+        cancelAlertButton.addEventListener('click', () => confirmationModal.classList.add('hidden'));
+        confirmAlertButton.addEventListener('click', triggerAlert);
+        resetButton.addEventListener('click', resetUI);
+        sirenButton.addEventListener('click', toggleSiren);
+    </script>
+</body>
+</html>
+
+

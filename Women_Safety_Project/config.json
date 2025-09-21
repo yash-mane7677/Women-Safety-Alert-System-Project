@@ -1,0 +1,26 @@
+{
+    "user_details": {
+        "name": "Yash mane"
+    },
+    "telegram_credentials": {
+        "bot_token": "8326103027:AAFFPi6CT6ftyzMFpa46XJ0GWaaqyOpWTSU",
+        "chat_id": "1143835302"
+    },
+    "email_credentials": {
+        "sender_email": "maneyash06@gmail.com",
+        "sender_password": "hzwgdzgontfdccgr",
+        "smtp_host": "smtp.gmail.com",
+        "smtp_port": 587
+    },
+    "emergency_contacts": [
+        {
+            "name": "Aryan mane",
+            "email": "aryanmane608@gmail.com"
+        },
+        {
+            "name": "sarika mane",
+            "email": "manesarika006@gmail.com"
+        }
+    ]
+}
+
