@@ -3,24 +3,26 @@
         "name": "Yash mane"
     },
     "telegram_credentials": {
-        "bot_token": "8326103027:AAFFPi6CT6ftyzMFpa46XJ0GWaaqyOpWTSU",
-        "chat_id": "1143835302"
+        "bot_token": "YOUR_TELEGRAM_BOT_TOKEN",
+        "chat_id": "YOUR_CHAT_ID"
     },
     "email_credentials": {
-        "sender_email": "maneyash06@gmail.com",
-        "sender_password": "hzwgdzgontfdccgr",
+        "sender_email": "your_email@example.com",
+        "sender_password": "YOUR_APP_PASSWORD",
         "smtp_host": "smtp.gmail.com",
         "smtp_port": 587
     },
     "emergency_contacts": [
         {
-            "name": "Aryan mane",
-            "email": "aryanmane608@gmail.com"
+            "name": "Contact 1",
+            "email": "contact1@example.com"
         },
         {
-            "name": "sarika mane",
-            "email": "manesarika006@gmail.com"
+            "name": "Contact 2",
+            "email": "contact2@example.com"
         }
     ]
 }
+
+
 
